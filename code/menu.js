@@ -8,7 +8,8 @@ class Menu {
     //  1 => Skew parallelogram border
     //  2 => No border
     //  3 => No backdrop
-    constructor (name, priority = true, changeActivity = true, startupFunc = null) {
+    constructor (name, priority = true, changeActivity = true,
+                 startupFunc = null) {
         this.id = name;  // \
         this.lType = 0;  // | Universal Menu properties
         this.bType = 1;  // |
@@ -18,7 +19,7 @@ class Menu {
         this.lock = this.startup;
         this.startFunc = startupFunc;
         this.op = 1;
-        
+
         // Text properties
         this.txtXOffset = 2.5; // lType = 0, 1
         this.txtWidth = 100;
@@ -27,33 +28,33 @@ class Menu {
         this.txtSelect = "#FFF";
         this.txtFont = "sans-serif";
         this.txtDist = 20; // lType = 0, 1
-        
+
         this.bgOp     = 0.9; // bType = 0 -- 2
         this.bgColor  = "#FDD"; // bType = 0 -- 2
         this.bdrColor = "#400"; // bType = 0, 1
-        
+
         this.sltColor = "#C00"
         this.sltPos   = 0;
         this.sltTrans = false;
-        
+
         // These variables are only for lType = 2
         this.animProg = 0;
         this.sltTurn = 0; this.animDTurn = 0;
         this.animDX = 0; this.animDY = 0;
         this.sltWidth = 0; this.sltHeight = 0;
         this.animDWidth = 0; this.animDHeight = 0;
-        
+
         this.pos = new Vec2();
         this.pad = new Vec2();
         this.turn = Math.floor(2 * this.txtSize * Math.random()) - this.txtSize;
         this.turnList = [];
-        
+
         this.text = [];
         this.func = [];
         this.posList = [];
         this.moveFunc = [];
         this.activity = 1 - +priority;
-        
+
         if (priority && changeActivity) {
             let i = Menu.list.length - 1;
             if (i < 0) {
@@ -69,10 +70,11 @@ class Menu {
         Menu.isOrdered = false;
         return this;
     }
-    
-    
-    
-    addItem(text, func, pos, moveFunc = null, txtSize = 10, txtWidth = 100, txtDist = 2 * txtSize) {
+
+
+
+    addItem(text, func, pos, moveFunc = null, txtSize = 10, txtWidth = 100,
+            txtDist = 2 * txtSize) {
         this.length += 1;
         this.text.push(text);
         this.func.push(func);
@@ -93,12 +95,13 @@ class Menu {
                 this.sltHeight = txtDist;
             }
         } else {
-            this.turnList.push(Math.floor(2 * this.txtSize * Math.random()) - this.txtSize);
+            this.turnList.push(Math.floor(2 * this.txtSize * Math.random()) -
+                this.txtSize);
         }
         return this;
     }
-    
-    
+
+
     setPos(x, y) {
         this.pos.x = x;
         this.pos.y = y;
@@ -117,9 +120,10 @@ class Menu {
         this.bdrColor = bdr;
         return this;
     }
-    setText(size, font, width = 100, dist = 2 * size, xOff = 5, clr = "#000", slt = "#FFF") {
+    setText(size, font, width = 100, dist = 2 * size, xOff = 5, clr = "#000",
+            slt = "#FFF") {
         this.turn = Math.floor(2 * size * Math.random()) - size;
-        
+
         this.txtWidth = this.lType === 2 ? [] : width;
         this.txtSize = this.lType === 2 ? [] : size;
         this.txtDist = this.lType === 2 ? [] : dist;
@@ -127,7 +131,7 @@ class Menu {
         this.txtColor = clr;
         this.txtSelect = slt;
         this.txtFont = font;
-        
+
         return this;
     }
     setType(bdr = 0, list = 0) {
@@ -145,8 +149,8 @@ class Menu {
         func(this);
         return this;
     }
-    
-    
+
+
     move(amt) {
         if (Menu.active) {
             if (this.lock) {
@@ -173,7 +177,8 @@ class Menu {
                 let padder = (this.txtDist[target] - this.txtSize[target]);
                 this.animDX -= padder / 2;
                 this.animDY -= this.txtDist[target] / 2;
-                this.animDWidth  = padder + this.txtWidth[target] - this.sltWidth;
+                this.animDWidth  = padder + this.txtWidth[target] -
+                    this.sltWidth;
                 this.animDHeight = this.txtDist[target] - this.sltHeight;
                 this.animProg = 0;
                 this.index = target;
@@ -235,18 +240,18 @@ class Menu {
             Menu.list[Menu.top].close(false);
         }
     }
-    
+
     static pause() {
         Menu.active = false;
     }
-    
+
     static order() {
-        Menu.list.sort((a, b) => a.activity - b.activity);    
+        Menu.list.sort((a, b) => a.activity - b.activity);
         Menu.isOrdered = true;
     }
-    
-    
-    
+
+
+
     animate(percent) {
         if (this.startup) {
             this.lock = this.startFunc(this, percent);
@@ -261,7 +266,7 @@ class Menu {
             Menu.list[Menu.top].animate(percent);
         }
     }
-    
+
     animate_0(percent) {
         if (this.sltTrans) {
             let diff = this.index - this.sltPos;
@@ -299,9 +304,11 @@ class Menu {
             this.animProg += percent;
             if (this.animProg >= 1) {
                 this.sltTurn = this.turnList[this.index];
-                let padder = this.txtDist[this.index] - this.txtSize[this.index];
+                let padder = this.txtDist[this.index] -
+                    this.txtSize[this.index];
                 this.sltPos.x = this.posList[this.index].x - padder / 2;
-                this.sltPos.y = this.posList[this.index].y - this.txtDist[this.index] / 2;
+                this.sltPos.y = this.posList[this.index].y -
+                    this.txtDist[this.index] / 2;
                 this.sltWidth  = padder + this.txtWidth[this.index];
                 this.sltHeight = this.txtDist[this.index];
                 this.sltTrans = false;
@@ -314,9 +321,9 @@ class Menu {
             }
         }
     }
-    
-    
-    
+
+
+
     static drawAll() {
         if (Menu.active) {
             if (!Menu.isOrdered) {
@@ -324,11 +331,12 @@ class Menu {
             }
             let i = 0, l = Menu.list.length;
             for (; i < l; i += 1) {
-                Menu.draw(Menu.list[i], Menu.list[i].op * ((i === Menu.top) ? 1 : 0.33));
+                Menu.draw(Menu.list[i], Menu.list[i].op *
+                    ((i === Menu.top) ? 1 : 0.33));
             }
         }
     }
-    
+
     static draw(mn, opMult = 1) {
         let BT = mn.bType;
         if (mn.lType === 2) {
@@ -337,7 +345,7 @@ class Menu {
         }
         // Variables for the rotation-skew of the menu boxes
         let width, height, posx, posy, padx, pady;
-        width  = mn.txtWidth + mn.txtDist + 
+        width  = mn.txtWidth + mn.txtDist +
             ((BT === 0) ? ((mn.length - 1) * mn.txtXOffset) : (0));
         height = mn.length * mn.txtDist;
         posx = mn.pos.x; posy = mn.pos.y;
@@ -348,7 +356,7 @@ class Menu {
         } else {
             pady -= mn.turn;
         }
-        
+
         let multi = mn.sltPos % 1,
             turnVar = mn.turnList[Math.floor(mn.sltPos)];
         if (mn.sltPos % 1 !== 0) {
@@ -364,7 +372,7 @@ class Menu {
             // Fill in the background of the menu
             ctx.globalAlpha = mn.bgOp * opMult;
             var lnGrade = ctx.createLinearGradient(
-                posx + width / 2, posy, 
+                posx + width / 2, posy,
                 posx + width / 2, posy + height);
             lnGrade.addColorStop(0, `rgba(255, 255, 255, 0.5)`);
             lnGrade.addColorStop(1, mn.bgColor);
@@ -377,10 +385,10 @@ class Menu {
                 ctx.lineTo(posx + width + padx, posy + height + pady);
                 ctx.lineTo(posx - pady, posy + height + padx);
             } else {
-                ctx.lineTo(posx + width + padx + ((mn.length - 1) * mn.txtXOffset), 
-                           posy + height + pady);
-                ctx.lineTo(posx - pady + ((mn.length - 1) * mn.txtXOffset), 
-                           posy + height + padx);
+                ctx.lineTo(posx + width + padx +
+                    ((mn.length - 1) * mn.txtXOffset), posy + height + pady);
+                ctx.lineTo(posx - pady + ((mn.length - 1) * mn.txtXOffset),
+                    posy + height + padx);
             }
             ctx.closePath();
             ctx.fill();
@@ -391,7 +399,7 @@ class Menu {
             ctx.stroke();
         } else if (BT === 2) {
             ctx.globalAlpha = (mn.bgOp * opMult) * 0.5;
-            
+
             let spadx = padx, spady = pady;
             if (mn.turn > 0) {
                 padx -= mn.turn;
@@ -411,10 +419,10 @@ class Menu {
             ctx.lineTo(posx - pady, posy + height + padx);
             ctx.closePath();
             ctx.fill();
-            
+
             padx = spadx; pady = spady;
             var lnGrade = ctx.createLinearGradient(
-                posx + width / 2, posy, 
+                posx + width / 2, posy,
                 posx + width / 2, posy + height);
             lnGrade.addColorStop(0, `#FFF`);
             lnGrade.addColorStop(1, mn.bgColor);
@@ -427,7 +435,7 @@ class Menu {
             ctx.lineTo(posx - pady, posy + height + padx);
             ctx.closePath();
             ctx.fill();
-            
+
         }
         ctx.globalAlpha = opMult;
 
@@ -519,12 +527,12 @@ class Menu {
             }
         }
     }
-    
+
     static draw_2(mn, opMult = 1) {
         // Variables for the rotation-skew of the menu boxes
         let width, height, posx, posy, padx, pady;
         posx = mn.pos.x; posy = mn.pos.y;
-        
+
         let turnVar = mn.sltTurn;
         ctx.globalAlpha = opMult;
 
@@ -562,7 +570,8 @@ class Menu {
         ctx.textAlign = "start"; ctx.textBaseline = "middle";
         ctx.fillStyle = mn.txtColor;
         let j = mn.length - 1;
-        //let distCutoff = width * width + height * height + 4 * turnVar * turnVar;
+        //let distCutoff = width * width + height * height +
+        //    4 * turnVar * turnVar;
         //distCutoff /= 2;
         //let sltX = mn.sltPos.x + mn.sltWidth / 2,
         //    sltY = mn.sltPos.y + mn.sltHeight / 2;
