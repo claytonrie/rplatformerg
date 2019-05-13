@@ -419,7 +419,7 @@ class Menu {
     }
     static draw(mn, opMult = 1) {
         let BT = mn.bType;
-        ctx.globalAlpha = opMult;
+        Menu.ctx.globalAlpha = opMult;
         if (mn.lType === 2) {
             Menu.draw_2(mn, opMult);
             return;
@@ -480,91 +480,91 @@ class Menu {
         anticlip.addPath(clipper);
         anticlip.rect(0, 0, CVW, CVH);
         
-        ctx.save();
-        ctx.clip(anticlip);
+        Menu.ctx.save();
+        Menu.ctx.clip(anticlip);
         if (BT < 2) {
             // Fill in the background of the menu
-            ctx.globalAlpha = mn.bgOp * opMult;
-            let lnGrade = ctx.createLinearGradient(
+            Menu.ctx.globalAlpha = mn.bgOp * opMult;
+            let lnGrade = Menu.ctx.createLinearGradient(
                 posx + width / 2, posy,
                 posx + width / 2, posy + height);
             lnGrade.addColorStop(0, `rgba(255, 255, 255, 0.5)`);
             lnGrade.addColorStop(1, mn.bgColor);
-            ctx.fillStyle = lnGrade;
+            Menu.ctx.fillStyle = lnGrade;
 
-            Menu.drawSkewBox(ctx, posx, posy, padx, pady, mn.turn, width,
+            Menu.drawSkewBox(Menu.ctx, posx, posy, padx, pady, mn.turn, width,
                 height, (BT > 0) ? (mn.length - 1) * mn.txtXOffset : 0);
-            ctx.fill();
+            Menu.ctx.fill();
 
             // Draw in menu border
-            ctx.globalAlpha = mn.op;
-            ctx.strokeStyle = mn.bdrColor;
-            ctx.stroke();
+            Menu.ctx.globalAlpha = mn.op;
+            Menu.ctx.strokeStyle = mn.bdrColor;
+            Menu.ctx.stroke();
         } else if (BT === 2) {
-            ctx.globalAlpha = (mn.bgOp * opMult) * 0.5;
-            ctx.fillStyle = mn.bgColor;
-            Menu.drawSkewBox(ctx, posx, posy, padx, pady, turnVar, width,
+            Menu.ctx.globalAlpha = (mn.bgOp * opMult) * 0.5;
+            Menu.ctx.fillStyle = mn.bgColor;
+            Menu.drawSkewBox(Menu.ctx, posx, posy, padx, pady, turnVar, width,
                 height);
-            ctx.fill();
+            Menu.ctx.fill();
 
-            let lnGrade = ctx.createLinearGradient(
+            let lnGrade = Menu.ctx.createLinearGradient(
                 posx + width / 2, posy,
                 posx + width / 2, posy + height);
             lnGrade.addColorStop(0, `#FFF`);
             lnGrade.addColorStop(1, mn.bgColor);
-            ctx.fillStyle = lnGrade;
+            Menu.ctx.fillStyle = lnGrade;
 
-            Menu.drawSkewBox(ctx, posx, posy, padx, pady, mn.turn, width,
+            Menu.drawSkewBox(Menu.ctx, posx, posy, padx, pady, mn.turn, width,
                 height);
-            ctx.fill();
+            Menu.ctx.fill();
 
         }
-        ctx.globalAlpha = opMult;
-        ctx.restore();
+        Menu.ctx.globalAlpha = opMult;
+        Menu.ctx.restore();
 
         // Fill in the selection box
-        ctx.save();
-        ctx.clip(clipper);
-        ctx.fillStyle = mn.sltColor;
-        //if (invBorder) ctx.globalAlpha = 0.5 * opMult;
-        ctx.fillRect(0, 0, CVW, CVH);
+        Menu.ctx.save();
+        Menu.ctx.clip(clipper);
+        Menu.ctx.fillStyle = mn.sltColor;
+        //if (invBorder) Menu.ctx.globalAlpha = 0.5 * opMult;
+        Menu.ctx.fillRect(0, 0, CVW, CVH);
         /*if (invBorder) {
-            ctx.globalAlpha = opMult;
-            //ctx.fillStyle = mn.sltColor;
-            ctx.fill();
-            ctx.strokeStyle = "#004";
-            ctx.stroke();
+            Menu.ctx.globalAlpha = opMult;
+            //Menu.ctx.fillStyle = mn.sltColor;
+            Menu.ctx.fill();
+            Menu.ctx.strokeStyle = "#004";
+            Menu.ctx.stroke();
         }*/
-        ctx.restore();
+        Menu.ctx.restore();
 
         // Draw the text
-        ctx.font = `${mn.txtSize}px ${mn.txtFont}`;
-        ctx.textAlign = "start"; ctx.textBaseline = "middle";
-        ctx.fillStyle = mn.txtColor;
+        Menu.ctx.font = `${mn.txtSize}px ${mn.txtFont}`;
+        Menu.ctx.textAlign = "start"; Menu.ctx.textBaseline = "middle";
+        Menu.ctx.fillStyle = mn.txtColor;
         let j = mn.length - 1;
         for (; j >= 0; j -= 1) {
             let dist = Math.abs(j - mn.sltPos);
             if (dist > mn.length / 2) {
                 dist = mn.length - dist;
             }
-            ctx.save();
-            ctx.clip(anticlip, "evenodd");
-            ctx.fillText(mn.text[j],
+            Menu.ctx.save();
+            Menu.ctx.clip(anticlip, "evenodd");
+            Menu.ctx.fillText(mn.text[j],
                 mn.pad.x + posx + (mn.txtDist - mn.txtSize) / 2 +
                 j * mn.txtXOffset,
                 mn.pad.y + posy + (j + 0.5) * mn.txtDist,
                 mn.txtWidth);
-            ctx.restore();
+            Menu.ctx.restore();
             if (dist < 2) {
-                ctx.save();
-                ctx.fillStyle = mn.txtSelect;
-                ctx.clip(clipper);
-                ctx.fillText(mn.text[j],
+                Menu.ctx.save();
+                Menu.ctx.fillStyle = mn.txtSelect;
+                Menu.ctx.clip(clipper);
+                Menu.ctx.fillText(mn.text[j],
                     mn.pad.x + posx + (mn.txtDist - mn.txtSize) / 2 +
                     j * mn.txtXOffset,
                     mn.pad.y + posy + (j + 0.5) * mn.txtDist,
                     mn.txtWidth);
-                ctx.restore();
+                Menu.ctx.restore();
             }
         }
     }
@@ -577,24 +577,24 @@ class Menu {
         width = mn.maxPos.x - mn.minPos.x;
         height = mn.maxPos.y - mn.minPos.y;
         // Fill in the background of the menu
-        ctx.globalAlpha = mn.bgOp * opMult;
-        let lnGrade = ctx.createLinearGradient(
+        Menu.ctx.globalAlpha = mn.bgOp * opMult;
+        let lnGrade = Menu.ctx.createLinearGradient(
             (mn.maxPos.x + mn.minPos.x) / 2, mn.minPos.y,
             (mn.maxPos.x + mn.minPos.x) / 2, mn.maxPos.y);
         lnGrade.addColorStop(0, `rgba(255, 255, 255, 0.5)`);
         lnGrade.addColorStop(1, mn.bgColor);
-        ctx.fillStyle = lnGrade;
+        Menu.ctx.fillStyle = lnGrade;
 
-        Menu.drawSkewBox(ctx, posx + mn.minPos.x, posy + mn.minPos.y, 
+        Menu.drawSkewBox(Menu.ctx, posx + mn.minPos.x, posy + mn.minPos.y, 
             padx, pady, mn.turn, width, height);
-        ctx.fill(); // Draw in background
+        Menu.ctx.fill(); // Draw in background
         
-        ctx.globalAlpha = mn.op;
-        ctx.strokeStyle = mn.bdrColor;
-        ctx.stroke(); // Draw in menu border
+        Menu.ctx.globalAlpha = mn.op;
+        Menu.ctx.strokeStyle = mn.bdrColor;
+        Menu.ctx.stroke(); // Draw in menu border
         
         let turnVar = mn.sltTurn;
-        ctx.globalAlpha = opMult;
+        Menu.ctx.globalAlpha = opMult;
 
         // Calculate the selection region for the item selection clipping box
         let clipper = new Path2D(), anticlip = new Path2D();
@@ -609,15 +609,15 @@ class Menu {
         anticlip.rect(0, 0, CVW, CVH);
 
         // Fill in the selection box
-        ctx.save();
-        ctx.fillStyle = mn.sltColor;
-        ctx.clip(clipper);
-        ctx.fillRect(0, 0, CVW, CVH);
-        ctx.restore();
+        Menu.ctx.save();
+        Menu.ctx.fillStyle = mn.sltColor;
+        Menu.ctx.clip(clipper);
+        Menu.ctx.fillRect(0, 0, CVW, CVH);
+        Menu.ctx.restore();
 
         // Draw the text
-        ctx.textAlign = "start"; ctx.textBaseline = "middle";
-        ctx.fillStyle = mn.txtColor;
+        Menu.ctx.textAlign = "start"; Menu.ctx.textBaseline = "middle";
+        Menu.ctx.fillStyle = mn.txtColor;
         let j = mn.length - 1;
         //let distCutoff = width * width + height * height +
         //    4 * turnVar * turnVar;
@@ -625,26 +625,26 @@ class Menu {
         //let sltX = mn.sltPos.x + mn.sltWidth / 2,
         //    sltY = mn.sltPos.y + mn.sltHeight / 2;
         for (; j >= 0; j -= 1) {
-            ctx.font = `${mn.txtSize[j]}px ${mn.txtFont}`;
+            Menu.ctx.font = `${mn.txtSize[j]}px ${mn.txtFont}`;
             //let xDiff = mn.posList[j].x + mn.txtWidth[j] / 2 - sltX,
             //    yDiff = mn.posList[j].y + mn.txtDist[j] / 2 - sltY;
             //let dist = xDiff * xDiff + yDiff * yDiff;
-            ctx.save();
-            ctx.clip(anticlip, "evenodd");
-            ctx.fillText(mn.text[j],
+            Menu.ctx.save();
+            Menu.ctx.clip(anticlip, "evenodd");
+            Menu.ctx.fillText(mn.text[j],
                 mn.posList[j].x + posx,
                 mn.posList[j].y + posy,
                 mn.txtWidth[j]);
-            ctx.restore();
+            Menu.ctx.restore();
             //if (dist < distCutoff) {
-            ctx.save();
-            ctx.fillStyle = mn.txtSelect;
-            ctx.clip(clipper);
-            ctx.fillText(mn.text[j],
+            Menu.ctx.save();
+            Menu.ctx.fillStyle = mn.txtSelect;
+            Menu.ctx.clip(clipper);
+            Menu.ctx.fillText(mn.text[j],
                 mn.posList[j].x + posx,
                 mn.posList[j].y + posy,
                 mn.txtWidth[j]);
-            ctx.restore();
+            Menu.ctx.restore();
             //}
         }
     }
@@ -653,3 +653,4 @@ Menu.active = false;
 Menu.isOrdered = false;
 Menu.list = [];
 Menu.top = 0; Menu.minAct = Infinity;
+Menu.ctx = null;
