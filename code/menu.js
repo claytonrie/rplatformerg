@@ -9,55 +9,44 @@ class Menu {
     //  2 => No border
     //  3 => No backdrop
     constructor (name, priority = true, changeActivity = true,
-                 startupFunc = null) {
+                 startupFunc = null, closingFunc = null) {
         this.id = name;  // \
         this.lType = 0;  // | Universal Menu properties
         this.bType = 1;  // |
         this.index = 0;  // |
         this.length = 0; // /
         this.startup = startupFunc !== null;
+        this.closing = false;
         this.lock = this.startup;
         this.startFunc = startupFunc;
+        this.isClosed = closingFunc === null;
+        this.closeFunc = closingFunc;
         this.op = 1;
 
         // Text properties
-        this.txtXOffset = 2.5; // lType = 0, 1
-        this.txtWidth = 100;
-        this.txtSize = 10;
         this.txtColor = "#000";
         this.txtSelect = "#FFF";
         this.txtFont = "sans-serif";
-        this.txtDist = 20; // lType = 0, 1
 
-        this.bgOp     = 0.9; // bType = 0 -- 2
-        this.bgColor  = "#FDD"; // bType = 0 -- 2
-        this.bdrColor = "#400"; // bType = 0, 1
-
-        this.sltColor = "#C00"
+        this.sltColor = "#C00";
         this.sltPos   = 0;
         this.sltTrans = false;
 
         // These variables are only for lType = 2
-        this.animProg = 0;
-        this.sltTurn = 0; this.animDTurn = 0;
-        this.animDX = 0; this.animDY = 0;
-        this.sltWidth = 0; this.sltHeight = 0;
-        this.animDWidth = 0; this.animDHeight = 0;
 
         this.pos = new Vec2();
         this.pad = new Vec2();
-        this.turn = Math.floor(2 * this.txtSize * Math.random()) - this.txtSize;
+        this.turn = Math.floor(2 * this.txtSize * Math.random()) -
+            this.txtSize;
         this.turnList = [];
 
         this.text = [];
         this.func = [];
-        this.posList = [];
-        this.moveFunc = [];
         this.activity = 1 - +priority;
 
         if (priority && changeActivity) {
             let i = Menu.list.length - 1;
-            if (i < 0) {
+            if (i > 0) {
                 for (; i >= 0; i -= 1) {
                     Menu.list[i].activity += 1;
                 }
@@ -84,7 +73,7 @@ class Menu {
             this.txtSize.push(txtSize);
             this.txtWidth.push(txtWidth);
             this.txtDist.push(txtDist);
-            let turnVar = Math.floor(2 * txtSize * Math.random()) - txtSize
+            let turnVar = Math.floor(2 * txtSize * Math.random()) - txtSize;
             this.turnList.push(turnVar);
             if (this.length === 1) {
                 this.sltTurn = turnVar;
@@ -93,6 +82,20 @@ class Menu {
                 this.sltPos.y = pos.y - txtDist / 2;
                 this.sltWidth  = padder + txtWidth;
                 this.sltHeight = txtDist;
+                
+                this.maxPos.x = txtWidth + (this.maxPos.x = pos.x);
+                this.maxPos.y = txtDist + (this.maxPos.y = pos.y);
+            } else {
+                if (pos.x < this.minPos.x) {
+                    this.minPos.x = pos.x;
+                } else if (txtWidth + pos.x > this.maxPos.x) {
+                    this.maxPos.x = txtWidth + pos.x;
+                }
+                if (pos.y - txtDist / 2 < this.minPos.y) {
+                    this.minPos.y = pos.y - txtDist / 2;
+                } else if (pos.y + txtDist / 2> this.maxPos.y) {
+                    this.maxPos.y = pos.y + txtDist / 2;
+                }
             }
         } else {
             this.turnList.push(Math.floor(2 * this.txtSize * Math.random()) -
@@ -136,12 +139,33 @@ class Menu {
     }
     setType(bdr = 0, list = 0) {
         this.bType = bdr;
+        if (bdr < 3) {
+            this.bgOp     = 0.9;
+            this.bgColor  = "#FDD";
+        }
+        if (bdr < 2) {
+            this.bdrColor = "#400";
+        }
         this.lType = list;
         if (list === 2) {
             this.txtWidth = [];
             this.txtSize = [];
             this.txtDist = [];
             this.sltPos = new Vec2();
+            
+            this.minPos = new Vec2();
+            this.maxPos = new Vec2();
+            
+            this.posList = [];
+            this.moveFunc = [];
+            
+            this.animProg = 0;
+            this.sltTurn = 0; this.animDTurn = 0;
+            this.animDX = 0; this.animDY = 0;
+            this.sltWidth = 0; this.sltHeight = 0;
+            this.animDWidth = 0; this.animDHeight = 0;
+        } else {
+            this.txtXOffset = 2.5;
         }
         return this;
     }
@@ -198,6 +222,24 @@ class Menu {
             Menu.top = 0;
             Menu.list = [];
             Menu.min = Infinity;
+        } else if (!this.isClosed) {
+            this.closing = true;
+            if (this.listId === Menu.top) {
+                Menu.minAct = Infinity;
+                let i = Menu.list.length - 1;
+                for (; i >= 0; i -= 1) {
+                    if (i !== this.listId) {
+                        if (Menu.list[i].activity > this.activity) {
+                            Menu.list[i].activity -= 1;
+                        }
+                        if (Menu.list[i].activity < Menu.minAct) {
+                            Menu.minAct = Menu.list[i].activity;
+                            Menu.top = i;
+                        }
+                    }
+                }
+                this.activity = Infinity;
+            }
         } else {
             Menu.isOrdered = false;
             Menu.list.splice(this.listId, 1);
@@ -207,25 +249,26 @@ class Menu {
             } else if (this.listId === Menu.top) {
                 Menu.minAct = Infinity;
                 for (; i >= 0; i -= 1) {
-                    if (i >= this.listId) {
-                        Menu.list[i].listId = i;
-                    }
+                    Menu.list[i].listId = i;
                     if (Menu.list[i].activity > this.activity) {
                         Menu.list[i].activity -= 1;
                     }
                     if (Menu.list[i].activity < Menu.minAct) {
                         Menu.minAct = Menu.list[i].activity;
-                        Menu.top = i;
+                        Menu.top = i; 
                     }
                 }
             } else {
                 for (; i >= 0; i -= 1) {
-                    if (i >= this.listId) {
+                    //if (i >= this.listId) {
                         Menu.list[i].listId = i;
-                    }
+                    //}
                     if (Menu.list[i].activity > this.activity) {
                         Menu.list[i].activity -= 1;
                     }
+                }
+                if (Menu.top > this.listId) {
+                    Menu.top -= 1;
                 }
             }
         }
@@ -246,7 +289,15 @@ class Menu {
     }
 
     static order() {
-        Menu.list.sort((a, b) => a.activity - b.activity);
+        let top = Menu.top;
+        Menu.list.sort((a, b) => b.activity - a.activity);
+        let i = Menu.list.length -1;
+        for (; i >= 0; i -= 1) {
+            if (Menu.list[i].listId === top) {
+                Menu.top = i;
+            }
+            Menu.list[i].listId = i;
+        }
         Menu.isOrdered = true;
     }
 
@@ -255,6 +306,12 @@ class Menu {
     animate(percent) {
         if (this.startup) {
             this.lock = this.startFunc(this, percent);
+        } else if (this.closing) {
+            this.lock = this.closeFunc(this, percent);
+            if (this.isClosed) {
+                this.closing = false;
+                this.close(false);
+            }
         }
         if (this.lock) {
             return;
@@ -263,7 +320,13 @@ class Menu {
     }
     static animate(percent) {
         if (Menu.active) {
-            Menu.list[Menu.top].animate(percent);
+            let i = Menu.list.length - 1;
+            for (; i >= 0; i -= 1) {
+                if (i === Menu.top || Menu.list[i].startup ||
+                        Menu.list[i].closing) {
+                    Menu.list[i].animate(percent);
+                }
+            }
         }
     }
 
@@ -332,13 +395,31 @@ class Menu {
             let i = 0, l = Menu.list.length;
             for (; i < l; i += 1) {
                 Menu.draw(Menu.list[i], Menu.list[i].op *
-                    ((i === Menu.top) ? 1 : 0.33));
+                    ((i === Menu.top) ? 1 : 0.25));
             }
         }
     }
-
+    
+    static drawSkewBox(path, posx, posy, padx, pady, turn, w, h,
+            xOff = 0, yOff = 0) {
+        let tpadx = padx, tpady = pady;
+        if (turn > 0) {
+            tpadx += turn;
+        } else {
+            tpady -= turn;
+        }
+        if ("canvas" in path) {
+            path.beginPath();
+        }
+        path.moveTo(posx     - tpadx       , posy     - tpady       );
+        path.lineTo(posx + w + tpady       , posy     - tpadx + yOff);
+        path.lineTo(posx + w + tpadx + xOff, posy + h + tpady       );
+        path.lineTo(posx     - tpady + xOff, posy + h + tpadx + yOff);
+        path.closePath();
+    }
     static draw(mn, opMult = 1) {
         let BT = mn.bType;
+        ctx.globalAlpha = opMult;
         if (mn.lType === 2) {
             Menu.draw_2(mn, opMult);
             return;
@@ -351,11 +432,6 @@ class Menu {
         posx = mn.pos.x; posy = mn.pos.y;
         padx = (2 * mn.pad.x  + mn.pad.y) / 3;
         pady = (2 * mn.pad.y  + mn.pad.x) / 3;
-        if (mn.turn > 0) {
-            padx += mn.turn;
-        } else {
-            pady -= mn.turn;
-        }
 
         let multi = mn.sltPos % 1,
             turnVar = mn.turnList[Math.floor(mn.sltPos)];
@@ -368,132 +444,97 @@ class Menu {
                 turnVar += multi * mn.turnList[Math.floor(mn.sltPos) + 1];
             }
         }
-        if (BT < 2) {
-            // Fill in the background of the menu
-            ctx.globalAlpha = mn.bgOp * opMult;
-            var lnGrade = ctx.createLinearGradient(
-                posx + width / 2, posy,
-                posx + width / 2, posy + height);
-            lnGrade.addColorStop(0, `rgba(255, 255, 255, 0.5)`);
-            lnGrade.addColorStop(1, mn.bgColor);
-            ctx.fillStyle = lnGrade;
-
-            ctx.beginPath();
-            ctx.moveTo(posx - padx, posy - pady);
-            ctx.lineTo(posx + width + pady, posy - padx);
-            if (BT === 0) {
-                ctx.lineTo(posx + width + padx, posy + height + pady);
-                ctx.lineTo(posx - pady, posy + height + padx);
-            } else {
-                ctx.lineTo(posx + width + padx +
-                    ((mn.length - 1) * mn.txtXOffset), posy + height + pady);
-                ctx.lineTo(posx - pady + ((mn.length - 1) * mn.txtXOffset),
-                    posy + height + padx);
-            }
-            ctx.closePath();
-            ctx.fill();
-
-            // Draw in menu border
-            ctx.globalAlpha = 1.0;
-            ctx.strokeStyle = mn.bdrColor;
-            ctx.stroke();
-        } else if (BT === 2) {
-            ctx.globalAlpha = (mn.bgOp * opMult) * 0.5;
-
-            let spadx = padx, spady = pady;
-            if (mn.turn > 0) {
-                padx -= mn.turn;
-            } else {
-                pady += mn.turn;
-            }
-            if (turnVar > 0) {
-                padx += turnVar;
-            } else {
-                pady -= turnVar;
-            }
-            ctx.fillStyle = mn.bgColor;
-            ctx.beginPath();
-            ctx.moveTo(posx - padx, posy - pady);
-            ctx.lineTo(posx + width + pady, posy - padx);
-            ctx.lineTo(posx + width + padx, posy + height + pady);
-            ctx.lineTo(posx - pady, posy + height + padx);
-            ctx.closePath();
-            ctx.fill();
-
-            padx = spadx; pady = spady;
-            var lnGrade = ctx.createLinearGradient(
-                posx + width / 2, posy,
-                posx + width / 2, posy + height);
-            lnGrade.addColorStop(0, `#FFF`);
-            lnGrade.addColorStop(1, mn.bgColor);
-            ctx.fillStyle = lnGrade;
-
-            ctx.beginPath();
-            ctx.moveTo(posx - padx, posy - pady);
-            ctx.lineTo(posx + width + pady, posy - padx);
-            ctx.lineTo(posx + width + padx, posy + height + pady);
-            ctx.lineTo(posx - pady, posy + height + padx);
-            ctx.closePath();
-            ctx.fill();
-
-        }
-        ctx.globalAlpha = opMult;
 
         // Calculate the selection region for the item selection clipping box
         let clipper = new Path2D(), anticlip = new Path2D();
-        padx = (2 * mn.pad.x  + mn.pad.y) / 3;
-        pady = (2 * mn.pad.y  + mn.pad.x) / 3;
-        if (turnVar > 0) {
-            padx += turnVar;
-        } else {
-            pady -= turnVar;
-        }
         // Check to see if the selection box is split
         if (mn.sltPos > mn.length - 1) {
             // Create the bottom box region
             let bPosy = posy + mn.sltPos * mn.txtDist,
                 bPosx = posx + (mn.txtDist - mn.txtSize) / 2 +
                     mn.sltPos * mn.txtXOffset,
-                bPadx = (1 - multi) * padx, bPady = (1 - multi) * pady;
-            height = Math.round(mn.txtDist * (1 - multi));
-            width = mn.txtWidth + (mn.txtDist - mn.txtSize);
-            clipper.moveTo(bPosx - bPadx, bPosy - bPady);
-            clipper.lineTo(bPosx + width + bPady, bPosy - bPadx);
-            clipper.lineTo(bPosx + width + bPadx, bPosy + height + bPady);
-            clipper.lineTo(bPosx - bPady, bPosy + height + bPadx);
-            clipper.closePath();
+                bPadx = (1 - multi) * padx, bPady = (1 - multi) * pady,
+                bHeight = mn.txtDist * (1 - multi),
+                bWidth = mn.txtWidth + (mn.txtDist - mn.txtSize);
+            Menu.drawSkewBox(clipper, bPosx, bPosy, bPadx, bPady, 
+                (1 - multi) * turnVar, bWidth, bHeight);
 
             // Create the top box region
             bPosx = posx + (mn.txtDist - mn.txtSize) / 2 +
                 (mn.sltPos - mn.length) * mn.txtXOffset;
-            height = Math.round(mn.txtDist * multi);
+            bPosy = posy + (mn.sltPos - mn.length) * mn.txtDist;
+            bHeight = Math.round(mn.txtDist * multi);
             bPadx = multi * padx; bPady = multi * pady;
-            clipper.moveTo(bPosx - bPadx, posy - bPady);
-            clipper.lineTo(bPosx + width + bPady, posy - bPadx);
-            clipper.lineTo(bPosx + width + bPadx, posy + height + bPady);
-            clipper.lineTo(bPosx - bPady, posy + height + bPadx);
-            clipper.closePath();
+            Menu.drawSkewBox(clipper, bPosx, posy, bPadx, bPady, 
+                multi * turnVar, bWidth, bHeight);
         } else {
             // Create the selection box region
             let bPosy = posy + mn.sltPos * mn.txtDist,
                 bPosx = posx + (mn.txtDist - mn.txtSize) / 2 +
-                mn.sltPos * mn.txtXOffset;
-            height = mn.txtDist;
-            width = mn.txtWidth + (mn.txtDist - mn.txtSize);
-            clipper.moveTo(bPosx - padx, bPosy - pady);
-            clipper.lineTo(bPosx + width + pady, bPosy - padx);
-            clipper.lineTo(bPosx + width + padx, bPosy + height + pady);
-            clipper.lineTo(bPosx - pady, bPosy + height + padx);
-            clipper.closePath();
+                    mn.sltPos * mn.txtXOffset,
+                bHeight = mn.txtDist,
+                bWidth = mn.txtWidth + (mn.txtDist - mn.txtSize);
+            Menu.drawSkewBox(clipper, bPosx, bPosy, padx, pady, turnVar,
+                bWidth, bHeight);
         }
         anticlip.addPath(clipper);
         anticlip.rect(0, 0, CVW, CVH);
+        
+        ctx.save();
+        ctx.clip(anticlip);
+        if (BT < 2) {
+            // Fill in the background of the menu
+            ctx.globalAlpha = mn.bgOp * opMult;
+            let lnGrade = ctx.createLinearGradient(
+                posx + width / 2, posy,
+                posx + width / 2, posy + height);
+            lnGrade.addColorStop(0, `rgba(255, 255, 255, 0.5)`);
+            lnGrade.addColorStop(1, mn.bgColor);
+            ctx.fillStyle = lnGrade;
+
+            Menu.drawSkewBox(ctx, posx, posy, padx, pady, mn.turn, width,
+                height, (BT > 0) ? (mn.length - 1) * mn.txtXOffset : 0);
+            ctx.fill();
+
+            // Draw in menu border
+            ctx.globalAlpha = mn.op;
+            ctx.strokeStyle = mn.bdrColor;
+            ctx.stroke();
+        } else if (BT === 2) {
+            ctx.globalAlpha = (mn.bgOp * opMult) * 0.5;
+            ctx.fillStyle = mn.bgColor;
+            Menu.drawSkewBox(ctx, posx, posy, padx, pady, turnVar, width,
+                height);
+            ctx.fill();
+
+            let lnGrade = ctx.createLinearGradient(
+                posx + width / 2, posy,
+                posx + width / 2, posy + height);
+            lnGrade.addColorStop(0, `#FFF`);
+            lnGrade.addColorStop(1, mn.bgColor);
+            ctx.fillStyle = lnGrade;
+
+            Menu.drawSkewBox(ctx, posx, posy, padx, pady, mn.turn, width,
+                height);
+            ctx.fill();
+
+        }
+        ctx.globalAlpha = opMult;
+        ctx.restore();
 
         // Fill in the selection box
         ctx.save();
-        ctx.fillStyle = mn.sltColor;
         ctx.clip(clipper);
+        ctx.fillStyle = mn.sltColor;
+        //if (invBorder) ctx.globalAlpha = 0.5 * opMult;
         ctx.fillRect(0, 0, CVW, CVH);
+        /*if (invBorder) {
+            ctx.globalAlpha = opMult;
+            //ctx.fillStyle = mn.sltColor;
+            ctx.fill();
+            ctx.strokeStyle = "#004";
+            ctx.stroke();
+        }*/
         ctx.restore();
 
         // Draw the text
@@ -531,31 +572,39 @@ class Menu {
     static draw_2(mn, opMult = 1) {
         // Variables for the rotation-skew of the menu boxes
         let width, height, posx, posy, padx, pady;
+        padx = 2; pady = 2;
         posx = mn.pos.x; posy = mn.pos.y;
+        width = mn.maxPos.x - mn.minPos.x;
+        height = mn.maxPos.y - mn.minPos.y;
+        // Fill in the background of the menu
+        ctx.globalAlpha = mn.bgOp * opMult;
+        let lnGrade = ctx.createLinearGradient(
+            (mn.maxPos.x + mn.minPos.x) / 2, mn.minPos.y,
+            (mn.maxPos.x + mn.minPos.x) / 2, mn.maxPos.y);
+        lnGrade.addColorStop(0, `rgba(255, 255, 255, 0.5)`);
+        lnGrade.addColorStop(1, mn.bgColor);
+        ctx.fillStyle = lnGrade;
 
+        Menu.drawSkewBox(ctx, posx + mn.minPos.x, posy + mn.minPos.y, 
+            padx, pady, mn.turn, width, height);
+        ctx.fill(); // Draw in background
+        
+        ctx.globalAlpha = mn.op;
+        ctx.strokeStyle = mn.bdrColor;
+        ctx.stroke(); // Draw in menu border
+        
         let turnVar = mn.sltTurn;
         ctx.globalAlpha = opMult;
 
         // Calculate the selection region for the item selection clipping box
         let clipper = new Path2D(), anticlip = new Path2D();
-        padx = 2;
-        pady = 2;
-        if (turnVar > 0) {
-            padx += turnVar;
-        } else {
-            pady -= turnVar;
-        }
         // Create the selection region
         let bPosy = posy + mn.sltPos.y,
-            bPosx = posx + mn.sltPos.x,
-            bPadx = padx, bPady = pady;
+            bPosx = posx + mn.sltPos.x;
         height = mn.sltHeight;
         width = mn.sltWidth;
-        clipper.moveTo(bPosx - bPadx, bPosy - bPady);
-        clipper.lineTo(bPosx + width + bPady, bPosy - bPadx);
-        clipper.lineTo(bPosx + width + bPadx, bPosy + height + bPady);
-        clipper.lineTo(bPosx - bPady, bPosy + height + bPadx);
-        clipper.closePath();
+        Menu.drawSkewBox(clipper, bPosx, bPosy, padx, pady, turnVar, width,
+            height);
         anticlip.addPath(clipper);
         anticlip.rect(0, 0, CVW, CVH);
 
