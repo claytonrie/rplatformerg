@@ -478,7 +478,7 @@ class Menu {
                 bWidth, bHeight);
         }
         anticlip.addPath(clipper);
-        anticlip.rect(0, 0, CVW, CVH);
+        anticlip.rect(0, 0, Menu.xBound, Menu.yBound);
         
         Menu.ctx.save();
         Menu.ctx.clip(anticlip);
@@ -527,7 +527,7 @@ class Menu {
         Menu.ctx.clip(clipper);
         Menu.ctx.fillStyle = mn.sltColor;
         //if (invBorder) Menu.ctx.globalAlpha = 0.5 * opMult;
-        Menu.ctx.fillRect(0, 0, CVW, CVH);
+        Menu.ctx.fillRect(0, 0, Menu.xBound, Menu.yBound);
         /*if (invBorder) {
             Menu.ctx.globalAlpha = opMult;
             //Menu.ctx.fillStyle = mn.sltColor;
@@ -606,13 +606,13 @@ class Menu {
         Menu.drawSkewBox(clipper, bPosx, bPosy, padx, pady, turnVar, width,
             height);
         anticlip.addPath(clipper);
-        anticlip.rect(0, 0, CVW, CVH);
+        anticlip.rect(0, 0, Menu.xBound, Menu.yBound);
 
         // Fill in the selection box
         Menu.ctx.save();
         Menu.ctx.fillStyle = mn.sltColor;
         Menu.ctx.clip(clipper);
-        Menu.ctx.fillRect(0, 0, CVW, CVH);
+        Menu.ctx.fillRect(0, 0, Menu.xBound, Menu.yBound);
         Menu.ctx.restore();
 
         // Draw the text
@@ -653,4 +653,4 @@ Menu.active = false;
 Menu.isOrdered = false;
 Menu.list = [];
 Menu.top = 0; Menu.minAct = Infinity;
-Menu.ctx = null;
+Menu.ctx = null; Menu.xBound = 0; Menu.yBound = 0;
